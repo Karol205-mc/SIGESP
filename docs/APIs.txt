@@ -1,0 +1,140 @@
+================================================================================
+CATÁLOGO DE ENDPOINTS DE INTEROPERABILIDAD - SIGESP (GRUPO 3: POLICÍA NACIONAL)
+ECOSISTEMA DE 5 GRUPOS - UNIVERSIDAD TÉCNICA "LUIS VARGAS TORRES" DE ESMERALDAS
+NORMA TÉCNICA: IEEE 830-1998
+================================================================================
+
+INFORMACIÓN GENERAL DEL SERVICIO:
+- Puerto Oficial Asignado: :8083
+- Protocolo: HTTP / JSON
+- Mecanismo de Autenticación Interinstitucional: Cabecera HTTP Obligatoria
+  Header: X-Api-Key: RC-POLICIA-KEY-2026
+- Endpoint Base: http://<HOST>:8083/api/v1/policia
+
+--------------------------------------------------------------------------------
+1. CONSULTA DE ANTECEDENTES Y ÓRDENES DE CAPTURA
+--------------------------------------------------------------------------------
+Descripción: Vital para el Sistema de Gestión de Información Migratoria (SGIM)
+y Registro Civil para verificar alertas de impedimento de salida internacional,
+órdenes de captura activas o medidas cautelares dictadas por jueces penales.
+
+Método: GET
+Ruta: /api/v1/policia/antecedentes/{cedula}
+Ejemplo: GET http://localhost:8083/api/v1/policia/antecedentes/0801000001
+Cabeceras requeridas:
+  X-Api-Key: RC-POLICIA-KEY-2026
+
+Respuesta Exitosa (200 OK):
+{
+  "cedula": "0801000001",
+  "nombres_completos": "Juan Carlos Pérez Mendoza",
+  "posee_antecedentes": true,
+  "orden_captura_activa": false,
+  "medidas_cautelares_activas": false,
+  "alerta_migratoria": false,
+  "total_denuncias_asociadas": 1,
+  "detalle_causas": [
+    {
+      "codigo_unico": "POL-2026-0001",
+      "delito": "Robo y Asalto a Mano Armada",
+      "gravedad": "GRAVE",
+      "fecha_hechos": "2026-11-16T15:23:00Z",
+      "estado": "En proceso",
+      "orden_captura": false,
+      "medida_proteccion": false
+    }
+  ],
+  "entidad_emisora": "Policía Nacional del Ecuador - SIGESP",
+  "fecha_consulta": "2026-11-18T16:00:00Z"
+}
+
+--------------------------------------------------------------------------------
+2. VERIFICACIÓN DE MENORES Y MEDIDAS DINAPEN
+--------------------------------------------------------------------------------
+Descripción: Utilizado por Migración en puestos fronterizos y DINAPEN para detectar
+menores con alertas de desaparición (Alerta Emilia) o impedimentos judiciales de salida
+del territorio ecuatoriano por litigio de patria potestad.
+
+Método: GET
+Ruta: /api/v1/policia/verificar-menor/{cedula_menor}
+Ejemplo: GET http://localhost:8083/api/v1/policia/verificar-menor/0803000003
+Cabeceras requeridas:
+  X-Api-Key: RC-POLICIA-KEY-2026
+
+Respuesta Exitosa (200 OK):
+{
+  "cedula_menor": "0803000003",
+  "nombres_completos": "Carlos Andrés Pérez Salazar",
+  "es_menor_confirmado": true,
+  "alerta_desaparicion_emilia": false,
+  "medida_proteccion_dinapen": true,
+  "impedimento_salida_pais": true,
+  "total_reportes_dinapen": 1,
+  "observaciones": "ALERTA: Medida cautelar o de protección vigente. Se requiere autorización judicial para movilización.",
+  "fecha_consulta": "2026-11-18T16:00:00Z",
+  "entidad_emisora": "Policía Nacional del Ecuador - DINAPEN"
+}
+
+--------------------------------------------------------------------------------
+3. CONSULTA DE EXPEDIENTES DE DENUNCIA POR CÓDIGO ÚNICO
+--------------------------------------------------------------------------------
+Descripción: Usado por Entidades Financieras (Bancos), Registro Civil e IESS para
+validar constancias de denuncias por sustracción de documentos de identidad,
+robos o incidentes laborales.
+
+Método: GET
+Ruta: /api/v1/policia/denuncias/{codigo_unico}
+Ejemplo: GET http://localhost:8083/api/v1/policia/denuncias/POL-2026-0001
+Cabeceras requeridas:
+  X-Api-Key: RC-POLICIA-KEY-2026
+
+Respuesta Exitosa (200 OK):
+{
+  "codigo_unico": "POL-2026-0001",
+  "estado": "En proceso",
+  "tipo_tramite": "FLAGRANCIA",
+  "delito": "Robo y Asalto a Mano Armada",
+  "gravedad": "GRAVE",
+  "fecha_hechos": "2026-11-16T15:23:00Z",
+  "sector": "Centro Histórico",
+  "tiene_orden_captura": false,
+  "tiene_medida_proteccion": false,
+  "unidad_policial_a_cargo": "Subzona Esmeraldas N° 8",
+  "fecha_consulta": "2026-11-18T16:00:00Z"
+}
+
+--------------------------------------------------------------------------------
+4. CONSULTA PÚBLICA DE SEGUIMIENTO (SIN CABECERA REQUERIDA)
+--------------------------------------------------------------------------------
+Método: GET
+Ruta: /api/v1/seguimiento/consulta/{codigo_unico}
+Ejemplo: GET http://localhost:8083/api/v1/seguimiento/consulta/POL-2026-0001
+
+Respuesta Exitosa (200 OK):
+{
+  "codigo_unico": "POL-2026-0001",
+  "estado_actual": "En proceso",
+  "tipo_tramite": "FLAGRANCIA",
+  "categoria_delito": "Robo y Asalto a Mano Armada",
+  "gravedad": "GRAVE",
+  "fecha_hechos": "2026-11-16T15:23:00Z",
+  "sector": "Centro Histórico",
+  "historial_seguimiento": [
+    {
+      "id": 1,
+      "denuncia_id": 1,
+      "estado_anterior": null,
+      "estado_nuevo": "Registrada",
+      "observaciones": "Ingreso formal de la causa",
+      "fecha_cambio": "2026-11-16T15:23:00Z"
+    },
+    {
+      "id": 2,
+      "denuncia_id": 1,
+      "estado_anterior": "Registrada",
+      "estado_nuevo": "En proceso",
+      "observaciones": "Asignado a Subteniente Juliana Enríquez",
+      "fecha_cambio": "2026-11-17T09:00:00Z"
+    }
+  ]
+}

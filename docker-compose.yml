@@ -1,0 +1,35 @@
+services:
+  policia-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sigesp_policia_app
+    ports:
+      - "8083:8083"
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
+      - PORT=8083
+      - HOST=0.0.0.0
+      - DATABASE_URL=${DATABASE_URL}
+      - DB_HOST=${DB_HOST:-sigesp-bd-bd-policia.d.aivencloud.com}
+      - DB_PORT=${DB_PORT:-15393}
+      - DB_USER=${DB_USER:-avnadmin}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME:-policia_nacional}
+      - DB_SSLMODE=${DB_SSLMODE:-require}
+      - SECRET_KEY=${SECRET_KEY:-sigesp-policia-secret-key-2026-seguridad-nacional-esmeraldas-ecuador}
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=480
+      - KEYCLOAK_URL=${KEYCLOAK_URL:-http://localhost:8080}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-esmeraldas-resiliente}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-sigesp-policia}
+      - INTEROP_API_KEY=${INTEROP_API_KEY:-RC-POLICIA-KEY-2026}
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

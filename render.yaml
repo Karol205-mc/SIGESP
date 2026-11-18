@@ -1,0 +1,31 @@
+# ==============================================================================
+# CONFIGURACIÓN DE DESPLIEGUE EN RENDER - GRUPO 3: POLICÍA NACIONAL (SIGESP)
+# Norma Técnica: IEEE 830-1998
+# ==============================================================================
+services:
+  - type: web
+    name: sigesp-policia-nacional
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: INTEROP_API_KEY
+        value: RC-POLICIA-KEY-2026
+      - key: SECRET_KEY
+        value: sigesp-policia-secret-key-2026-seguridad-nacional-esmeraldas-ecuador
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: KEYCLOAK_URL
+        value: "http://localhost:8080"
+      - key: KEYCLOAK_REALM
+        value: "esmeraldas-resiliente"
+      - key: KEYCLOAK_CLIENT_ID
+        value: "sigesp-policia"
