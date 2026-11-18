@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// URL del Backend FastAPI
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8083/api/v1';
+// URL del Backend FastAPI (relativa para producción unificada y compatible con Vite proxy)
+const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 const api = axios.create({
   baseURL: BASE_URL,

@@ -84,3 +84,18 @@ def root_view():
         "docs": "/docs",
         "health": "/health"
     }
+
+# Manejador SPA para recargas y navegación profunda en React Router
+@app.get("/{full_path:path}", include_in_schema=False)
+def serve_spa(full_path: str):
+    # Si la ruta coincide con un archivo estático real en la carpeta static
+    target_file = static_dir / full_path
+    if target_file.is_file():
+        return FileResponse(str(target_file))
+    
+    # En caso contrario, devolver index.html para que React Router resuelva la ruta
+    index_file = static_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    
+    return JSONResponse(status_code=404, content={"detail": "Recurso no encontrado"})
