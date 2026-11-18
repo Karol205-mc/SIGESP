@@ -5,9 +5,14 @@ import logging
 
 logger = logging.getLogger("sigesp.database")
 
+# Normalizar URL de PostgreSQL para soportar diferentes formatos de proveedores cloud (Render / Heroku / Aiven)
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
 # Crear el motor SQLAlchemy
 engine = create_engine(
-    settings.DATABASE_URL,
+    db_url,
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,
