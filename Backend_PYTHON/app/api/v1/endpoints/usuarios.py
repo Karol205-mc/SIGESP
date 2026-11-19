@@ -114,8 +114,6 @@ def eliminar_usuario(
         relaciones.append("asignaciones")
     if db.query(Novedad).filter(Novedad.usuario_id == id).first():
         relaciones.append("novedades")
-    if db.query(Auditoria).filter(Auditoria.usuario_id == id).first():
-        relaciones.append("auditoría")
     if db.query(AlertaPanico).filter(AlertaPanico.usuario_id == id).first():
         relaciones.append("alertas")
     if db.query(Seguimiento).filter(Seguimiento.usuario_id == id).first():
@@ -128,6 +126,9 @@ def eliminar_usuario(
         )
 
     try:
+        db.query(Auditoria).filter(Auditoria.usuario_id == id).update(
+            {Auditoria.usuario_id: None}, synchronize_session=False
+        )
         db.delete(user)
         db.commit()
     except IntegrityError:
