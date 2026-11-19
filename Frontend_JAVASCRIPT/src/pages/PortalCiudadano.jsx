@@ -249,8 +249,12 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
       {/* BANNER PRINCIPAL DEL SISTEMA (Menú y consultas) */}
       {['menu', 'denuncia', 'consulta', 'antecedentes'].includes(seccionActiva) && (
         <div className="bg-gradient-to-r from-police-950 via-police-900 to-police-800 text-white rounded-2xl p-6 sm:p-10 shadow-xl border border-police-700/50 mb-8 relative overflow-hidden">
-          <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 flex items-center justify-center pointer-events-none">
-            <img src="/assets/logo_sigesp.svg" alt="Fondo" className="w-80 h-80" />
+          <div className="absolute right-0 top-0 bottom-0 w-[43%] hidden sm:flex items-end justify-end pointer-events-none overflow-hidden">
+            <img
+              src="/assets/poli-mujer-01.webp"
+              alt="Policía Nacional"
+              className="h-full w-full object-contain object-right-bottom"
+            />
           </div>
           <div className="max-w-2xl relative z-10">
             <div className="flex flex-wrap items-center gap-2 mb-3">
