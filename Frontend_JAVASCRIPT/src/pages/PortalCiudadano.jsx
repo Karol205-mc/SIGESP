@@ -248,8 +248,8 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
 
       {/* BANNER PRINCIPAL DEL SISTEMA (Menú y consultas) */}
       {['menu', 'denuncia', 'consulta', 'antecedentes'].includes(seccionActiva) && (
-        <div className="bg-gradient-to-r from-police-950 via-police-900 to-police-800 text-white rounded-2xl p-6 sm:p-10 shadow-xl border border-police-700/50 mb-8 relative overflow-hidden">
-          <div className="max-w-2xl relative z-10">
+        <div className="bg-gradient-to-r from-police-950 via-police-900 to-police-800 text-white rounded-2xl px-6 py-6 sm:px-10 sm:py-8 shadow-xl border border-police-700/50 mb-8 relative overflow-hidden">
+          <div className="w-full lg:w-[62%] relative z-10">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="px-3 py-1 rounded-full bg-accent-gold/20 text-accent-gold text-xs font-extrabold tracking-wider uppercase border border-accent-gold/30">
                 Atención Ciudadana Oficial
@@ -265,10 +265,13 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
               )}
             </div>
 
+            <p className="text-accent-gold text-sm sm:text-base font-black tracking-[0.18em] uppercase mb-1">
+              Policía Nacional
+            </p>
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight mb-3">
               Sistema Integral de Gestión y Trámites
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6 pr-0 lg:pr-8">
               Inscripción de denuncias formales, auxilio georreferenciado, seguimiento en tiempo real y verificación institucional.
             </p>
 
@@ -294,16 +297,14 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
               </button>
             </form>
           </div>
-        </div>
-      )}
 
-      {seccionActiva === 'menu' && (
-        <div className="relative h-20 -mt-10 mb-0 z-20 hidden sm:flex items-end justify-center pointer-events-none" aria-hidden="true">
-          <img
-            src="/assets/poli-mujer-01.webp"
-            alt=""
-            className="h-32 w-auto object-contain object-center drop-shadow-2xl"
-          />
+          <div className="absolute right-0 bottom-0 w-[38%] h-full hidden lg:flex items-end justify-end pointer-events-none overflow-hidden">
+            <img
+              src="/assets/poli-mujer-01.webp"
+              alt="Policía Nacional"
+              className="h-[92%] w-full object-contain object-right-bottom pr-4"
+            />
+          </div>
         </div>
       )}
 
