@@ -249,13 +249,6 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
       {/* BANNER PRINCIPAL DEL SISTEMA (Menú y consultas) */}
       {['menu', 'denuncia', 'consulta', 'antecedentes'].includes(seccionActiva) && (
         <div className="bg-gradient-to-r from-police-950 via-police-900 to-police-800 text-white rounded-2xl p-6 sm:p-10 shadow-xl border border-police-700/50 mb-8 relative overflow-hidden">
-          <div className="absolute right-0 top-0 bottom-0 w-[43%] hidden sm:flex items-end justify-end pointer-events-none overflow-hidden">
-            <img
-              src="/assets/poli-mujer-01.webp"
-              alt="Policía Nacional"
-              className="h-full w-full object-contain object-right-bottom"
-            />
-          </div>
           <div className="max-w-2xl relative z-10">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="px-3 py-1 rounded-full bg-accent-gold/20 text-accent-gold text-xs font-extrabold tracking-wider uppercase border border-accent-gold/30">
@@ -301,6 +294,16 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {seccionActiva === 'menu' && (
+        <div className="relative h-20 -mt-10 mb-0 z-20 hidden sm:flex items-end justify-center pointer-events-none" aria-hidden="true">
+          <img
+            src="/assets/poli-mujer-01.webp"
+            alt=""
+            className="h-32 w-auto object-contain object-center drop-shadow-2xl"
+          />
         </div>
       )}
 
