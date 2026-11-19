@@ -20,6 +20,67 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('inicio');
 
   useEffect(() => {
+    // 1. Capturar retorno de Keycloak SSO desde hash (#access_token=...)
+    if (window.location.hash && window.location.hash.includes('access_token=')) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      if (accessToken) {
+        try {
+          const payloadBase64 = accessToken.split('.')[1];
+          const payloadJson = decodeURIComponent(
+            atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'))
+              .split('')
+              .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          const payload = JSON.parse(payloadJson);
+          const roles = payload.realm_access?.roles || [];
+          let roleMapped = 'CIUDADANO';
+          for (const r of roles) {
+            const ru = r.toUpperCase();
+            if (ru.includes('ADMIN')) { roleMapped = 'ADMIN'; break; }
+            if (ru.includes('FLAGRANCIA') || ru.includes('PF')) { roleMapped = 'POLICIA_FLAGRANCIA'; break; }
+            if (ru.includes('JUDICIAL') || ru.includes('PJ')) { roleMapped = 'POLICIA_JUDICIAL'; break; }
+            if (ru.includes('SUPERVISOR')) { roleMapped = 'SUPERVISOR'; break; }
+          }
+
+          const sigespUser = {
+            id: payload.sub,
+            username: payload.preferred_username || 'admin',
+            nombre_completo: payload.name || `${payload.given_name || 'Jordan'} ${payload.family_name || 'Wila Portilla'}`,
+            nombres: payload.given_name || 'Jordan',
+            apellidos: payload.family_name || 'Wila Portilla',
+            rol: roleMapped,
+            email: payload.email || 'admin@policia.gob.ec',
+            cedula: '0802345678',
+            placa: 'PN-00101',
+            rango: 'Coronel de Policía'
+          };
+
+          localStorage.setItem('sigesp_token', accessToken);
+          localStorage.setItem('sigesp_user', JSON.stringify(sigespUser));
+          setUser(sigespUser);
+
+          if (roleMapped === 'ADMIN') {
+            setActiveTab('admin_personal');
+          } else if (roleMapped === 'POLICIA_FLAGRANCIA') {
+            setActiveTab('flagrancia');
+          } else if (roleMapped === 'POLICIA_JUDICIAL') {
+            setActiveTab('judicial');
+          } else if (roleMapped === 'SUPERVISOR') {
+            setActiveTab('despacho');
+          } else {
+            setActiveTab('inicio');
+          }
+
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
+        } catch (e) {
+          console.error('Error al decodificar token Keycloak:', e);
+        }
+      }
+    }
+
     // Restaurar sesión local si existe
     const savedUser = localStorage.getItem('sigesp_user');
     const token = localStorage.getItem('sigesp_token');
