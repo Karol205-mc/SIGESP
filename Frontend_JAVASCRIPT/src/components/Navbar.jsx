@@ -7,7 +7,15 @@ export default function Navbar({ user, onLogout, onNavigate, activeTab }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo y Nombre del Sistema */}
         <div 
-          onClick={() => onNavigate('inicio')}
+          onClick={() => {
+            if (!user || ['ADMIN', 'SUPERVISOR', 'CIUDADANO'].includes(user.rol)) {
+              onNavigate('inicio');
+            } else if (user.rol === 'POLICIA_FLAGRANCIA') {
+              onNavigate('flagrancia');
+            } else if (user.rol === 'POLICIA_JUDICIAL') {
+              onNavigate('judicial');
+            }
+          }}
           className="flex items-center space-x-3 cursor-pointer group select-none"
         >
           <div className="w-10 h-10 rounded-lg p-1 bg-police-800 border border-police-700 flex items-center justify-center group-hover:border-accent-gold transition-colors">
@@ -26,15 +34,17 @@ export default function Navbar({ user, onLogout, onNavigate, activeTab }) {
 
         {/* Acciones del Sistema */}
         <div className="flex items-center space-x-4">
-          {/* Navegación rápida */}
-          <button
-            onClick={() => onNavigate('inicio')}
-            className={`text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-md transition-colors ${
-              activeTab === 'inicio' ? 'bg-police-800 text-accent-gold' : 'text-slate-300 hover:text-white hover:bg-police-800/60'
-            }`}
-          >
-            Servicios del Sistema
-          </button>
+          {/* Navegación rápida (solo para ADMIN, SUPERVISOR, CIUDADANO o usuarios no autenticados) */}
+          {(!user || ['ADMIN', 'SUPERVISOR', 'CIUDADANO'].includes(user.rol)) && (
+            <button
+              onClick={() => onNavigate('inicio')}
+              className={`text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-md transition-colors ${
+                activeTab === 'inicio' ? 'bg-police-800 text-accent-gold' : 'text-slate-300 hover:text-white hover:bg-police-800/60'
+              }`}
+            >
+              Servicios del Sistema
+            </button>
+          )}
 
           {user ? (
             <div className="flex items-center space-x-3 pl-3 border-l border-police-700">

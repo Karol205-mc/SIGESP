@@ -27,6 +27,16 @@ export default function App() {
       try {
         const parsed = JSON.parse(savedUser);
         setUser(parsed);
+        // Si el rol operativo no tiene acceso a 'inicio', dirigirlo a su módulo principal
+        if (parsed.rol === 'POLICIA_FLAGRANCIA') {
+          setActiveTab('flagrancia');
+        } else if (parsed.rol === 'POLICIA_JUDICIAL') {
+          setActiveTab('judicial');
+        } else if (parsed.rol === 'SUPERVISOR') {
+          setActiveTab('despacho');
+        } else if (parsed.rol === 'ADMIN') {
+          setActiveTab('admin_personal');
+        }
         // Sincronizar con backend para asegurar datos completos y actualizados (cédula, nombres, dirección)
         if (token) {
           api.get('/auth/me').then(res => {

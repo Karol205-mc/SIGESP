@@ -178,15 +178,59 @@ export default function SedesPoliciales({ onVolver }) {
         });
         markersRef.current[sede.id] = marker;
       });
+
+      // Forzar ajuste de tamaño para evitar áreas grises por renderizado asíncrono
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 200);
+
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 600);
     }
 
+    // Observador de cambios de tamaño en el contenedor para recalcular tiles instantáneamente
+    let resizeObserver = null;
+    if (mapContainerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      });
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
+    const handleWindowResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleWindowResize);
+
     return () => {
+      window.removeEventListener('resize', handleWindowResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
   }, []);
+
+  // Forzar redibujado de tiles al cambiar cantón o sede
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      setTimeout(() => {
+        mapInstanceRef.current.invalidateSize();
+      }, 100);
+    }
+  }, [cantonSeleccionado, sedeActiva]);
 
   // Función para detectar ubicación del usuario
   const detectarUbicacion = () => {
@@ -310,7 +354,7 @@ export default function SedesPoliciales({ onVolver }) {
           <div 
             ref={mapContainerRef} 
             className="w-full h-full rounded-xl z-0"
-            style={{ minHeight: '480px' }}
+            style={{ minHeight: '480px', width: '100%', height: '100%' }}
           ></div>
         </div>
 
