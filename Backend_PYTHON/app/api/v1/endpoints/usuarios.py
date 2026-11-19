@@ -8,7 +8,7 @@ from app.models.usuario import Usuario, Rol
 from app.models.asignacion import Asignacion
 from app.models.novedad import Novedad
 from app.models.auditoria import Auditoria
-from app.models.alerta import Alerta
+from app.models.alerta import AlertaPanico
 from app.models.seguimiento import Seguimiento
 from app.schemas.usuario import UsuarioCreate, UsuarioUpdate, UsuarioOut, RolOut
 
@@ -116,7 +116,7 @@ def eliminar_usuario(
         relaciones.append("novedades")
     if db.query(Auditoria).filter(Auditoria.usuario_id == id).first():
         relaciones.append("auditoría")
-    if db.query(Alerta).filter(Alerta.usuario_id == id).first():
+    if db.query(AlertaPanico).filter(AlertaPanico.usuario_id == id).first():
         relaciones.append("alertas")
     if db.query(Seguimiento).filter(Seguimiento.usuario_id == id).first():
         relaciones.append("seguimientos")
