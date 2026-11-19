@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Users, ClipboardList, Shield, Plus, ToggleLeft, ToggleRight, Check, X, Search } from 'lucide-react';
+import { Users, ClipboardList, Shield, Plus, ToggleLeft, ToggleRight, Check, X, Search, Pencil, Trash2 } from 'lucide-react';
 
 export default function DashboardAdmin() {
   const [tab, setTab] = useState('usuarios'); // 'usuarios' | 'auditoria'
@@ -11,6 +11,7 @@ export default function DashboardAdmin() {
 
   // Formulario nuevo usuario
   const [showModal, setShowModal] = useState(false);
+  const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [roles, setRoles] = useState([]);
   const [nuevoUser, setNuevoUser] = useState({
     username: '',
@@ -77,6 +78,55 @@ export default function DashboardAdmin() {
       cargarDatos();
     } catch (err) {
       alert("Error al actualizar usuario");
+    }
+  };
+
+  const handleAbrirEdicion = (user) => {
+    setUsuarioEditar({
+      id: user.id,
+      nombres: user.nombres || '',
+      apellidos: user.apellidos || '',
+      rango: user.rango || '',
+      placa: user.placa || '',
+      email: user.email || '',
+      telefono: user.telefono || '',
+      rol_id: user.rol_id,
+      activo: user.activo,
+      password: ''
+    });
+    setShowModal(true);
+  };
+
+  const handleGuardarEdicion = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/usuarios/${usuarioEditar.id}`, {
+        nombres: usuarioEditar.nombres,
+        apellidos: usuarioEditar.apellidos,
+        rango: usuarioEditar.rango,
+        placa: usuarioEditar.placa,
+        email: usuarioEditar.email,
+        telefono: usuarioEditar.telefono,
+        rol_id: parseInt(usuarioEditar.rol_id),
+        activo: usuarioEditar.activo,
+        password: usuarioEditar.password
+      });
+      setUsuarioEditar(null);
+      await cargarDatos();
+      alert('Usuario actualizado correctamente.');
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Error al actualizar el usuario');
+    }
+  };
+
+  const handleEliminarUsuario = async (user) => {
+    if (!window.confirm(`¿Eliminar definitivamente al usuario "${user.username}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await api.delete(`/usuarios/${user.id}`);
+      await cargarDatos();
+      alert('Usuario eliminado correctamente.');
+    } catch (err) {
+      alert(err.response?.data?.detail || 'No se pudo eliminar el usuario.');
     }
   };
 
@@ -170,13 +220,29 @@ export default function DashboardAdmin() {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => toggleUsuarioActivo(u)}
-                        className="text-slate-400 hover:text-police-800 transition-colors"
-                        title={u.activo ? "Desactivar" : "Activar"}
-                      >
-                        {u.activo ? <ToggleRight className="w-5 h-5 text-emerald-600" /> : <ToggleLeft className="w-5 h-5 text-slate-400" />}
-                      </button>
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
+                          onClick={() => handleAbrirEdicion(u)}
+                          className="p-1.5 rounded-md border border-slate-200 text-slate-500 hover:text-police-800 hover:border-police-300 transition-colors"
+                          title="Editar usuario"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => toggleUsuarioActivo(u)}
+                          className="p-1.5 rounded-md border border-slate-200 text-slate-500 hover:text-police-800 transition-colors"
+                          title={u.activo ? "Desactivar" : "Activar"}
+                        >
+                          {u.activo ? <ToggleRight className="w-5 h-5 text-emerald-600" /> : <ToggleLeft className="w-5 h-5 text-slate-400" />}
+                        </button>
+                        <button
+                          onClick={() => handleEliminarUsuario(u)}
+                          className="p-1.5 rounded-md border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                          title="Eliminar usuario"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -232,12 +298,14 @@ export default function DashboardAdmin() {
         </div>
       )}
 
-      {/* MODAL PARA CREAR USUARIO POLICIAL */}
+      {/* MODAL PARA CREAR/EDITAR USUARIO POLICIAL */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <h3 className="text-base font-black text-slate-900 mb-4">Alta de Personal Policial</h3>
-            <form onSubmit={handleCrearUsuario} className="space-y-3 text-xs">
+            <h3 className="text-base font-black text-slate-900 mb-4">
+              {usuarioEditar ? 'Editar' : 'Alta de'} Personal Policial
+            </h3>
+            <form onSubmit={usuarioEditar ? handleGuardarEdicion : handleCrearUsuario} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Nombre de Usuario (Login)</label>
                 <input
@@ -319,8 +387,64 @@ export default function DashboardAdmin() {
                   type="submit"
                   className="px-5 py-2 bg-police-800 hover:bg-police-900 text-white rounded-lg font-bold"
                 >
-                  Guardar Personal
+                  {usuarioEditar ? 'Actualizar' : 'Guardar'} Personal
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PARA EDITAR DATOS DE USUARIO */}
+      {usuarioEditar && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-black text-slate-900">Editar Usuario</h3>
+              <button type="button" onClick={() => setUsuarioEditar(null)} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleGuardarEdicion} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Nombres</label>
+                  <input required value={usuarioEditar.nombres} onChange={(e) => setUsuarioEditar({...usuarioEditar, nombres: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-police-700" />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Apellidos</label>
+                  <input required value={usuarioEditar.apellidos} onChange={(e) => setUsuarioEditar({...usuarioEditar, apellidos: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-police-700" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Rol</label>
+                  <select value={usuarioEditar.rol_id} onChange={(e) => setUsuarioEditar({...usuarioEditar, rol_id: parseInt(e.target.value)})} className="w-full px-3 py-2 border rounded-lg">
+                    {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Rango</label>
+                  <input value={usuarioEditar.rango} onChange={(e) => setUsuarioEditar({...usuarioEditar, rango: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><label className="block font-bold text-slate-700 mb-1">Placa</label><input value={usuarioEditar.placa} onChange={(e) => setUsuarioEditar({...usuarioEditar, placa: e.target.value})} className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><label className="block font-bold text-slate-700 mb-1">Teléfono</label><input value={usuarioEditar.telefono} onChange={(e) => setUsuarioEditar({...usuarioEditar, telefono: e.target.value})} className="w-full px-3 py-2 border rounded-lg" /></div>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Correo</label>
+                <input type="email" value={usuarioEditar.email} onChange={(e) => setUsuarioEditar({...usuarioEditar, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Nueva contraseña <span className="font-normal text-slate-400">(dejar vacío para conservar)</span></label>
+                <input type="password" value={usuarioEditar.password} onChange={(e) => setUsuarioEditar({...usuarioEditar, password: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+              </div>
+              <label className="flex items-center space-x-2 rounded-lg border border-slate-200 p-2">
+                <input type="checkbox" checked={usuarioEditar.activo} onChange={(e) => setUsuarioEditar({...usuarioEditar, activo: e.target.checked})} />
+                <span className="font-bold text-slate-700">Usuario activo</span>
+              </label>
+              <div className="pt-3 flex justify-end space-x-2">
+                <button type="button" onClick={() => setUsuarioEditar(null)} className="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancelar</button>
+                <button type="submit" className="px-5 py-2 bg-police-800 text-white rounded-lg font-bold">Guardar cambios</button>
               </div>
             </form>
           </div>

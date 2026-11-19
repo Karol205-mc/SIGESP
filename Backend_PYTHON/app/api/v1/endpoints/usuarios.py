@@ -1,9 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 from app.core.database import get_db
 from app.core.security import require_roles, get_password_hash
 from app.models.usuario import Usuario, Rol
+from app.models.asignacion import Asignacion
+from app.models.novedad import Novedad
+from app.models.auditoria import Auditoria
+from app.models.alerta import Alerta
+from app.models.seguimiento import Seguimiento
 from app.schemas.usuario import UsuarioCreate, UsuarioUpdate, UsuarioOut, RolOut
 
 router = APIRouter()
@@ -84,3 +90,48 @@ def actualizar_usuario(
     db.commit()
     db.refresh(user)
     return user
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT, summary="Eliminar usuario policial")
+def eliminar_usuario(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_roles(["ADMIN"]))
+):
+    user = db.query(Usuario).filter(Usuario.id == id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+
+    if current_user.get("id") == id:
+        raise HTTPException(status_code=400, detail="No puede eliminar su propia cuenta administrativa.")
+
+    if user.rol and user.rol.codigo == "ADMIN" and user.activo:
+        raise HTTPException(status_code=400, detail="No se puede eliminar una cuenta administrativa activa. Primero desactívela o transfiera la administración.")
+
+    relaciones = []
+    if db.query(Asignacion).filter(
+        (Asignacion.usuario_asignado_id == id) | (Asignacion.asignado_por_id == id)
+    ).first():
+        relaciones.append("asignaciones")
+    if db.query(Novedad).filter(Novedad.usuario_id == id).first():
+        relaciones.append("novedades")
+    if db.query(Auditoria).filter(Auditoria.usuario_id == id).first():
+        relaciones.append("auditoría")
+    if db.query(Alerta).filter(Alerta.usuario_id == id).first():
+        relaciones.append("alertas")
+    if db.query(Seguimiento).filter(Seguimiento.usuario_id == id).first():
+        relaciones.append("seguimientos")
+
+    if relaciones:
+        raise HTTPException(
+            status_code=409,
+            detail="No se puede eliminar el usuario porque tiene relaciones registradas en: " + ", ".join(relaciones) + ". Puede desactivarlo desde el botón de estado."
+        )
+
+    try:
+        db.delete(user)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="No se puede eliminar el usuario porque ya tiene registros relacionados. Puede desactivarlo sin borrar su historial.")
+
+    return {"mensaje": "Usuario eliminado correctamente.", "id": id}
