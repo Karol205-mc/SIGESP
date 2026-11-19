@@ -273,13 +273,29 @@ export default function PanelAudiencias() {
             {diligencias.map(d => (
               <div key={d.id} className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-3 hover:border-police-600 transition-colors">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
-                  <div>
-                    <span className="text-[10px] uppercase font-mono font-bold text-police-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
-                      Causa N° {d.numero_causa_judicial || 'S/N'}
-                    </span>
-                    <h3 className="text-sm font-extrabold text-slate-900 mt-1">
-                      {d.denuncia?.codigo_unico || `Denuncia ID: ${d.denuncia_id}`}
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] uppercase font-mono font-bold text-police-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
+                        Causa N° {d.numero_causa_judicial || 'S/N'}
+                      </span>
+                      <span className="text-xs font-mono font-black text-police-950 bg-police-100 px-2 py-0.5 rounded border border-police-200">
+                        {d.denuncia_codigo || d.denuncia?.codigo_unico || `POL-2026-000${d.denuncia_id}`}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-extrabold text-slate-900">
+                      {d.denuncia_delito || d.denuncia?.categoria?.nombre || 'Diligencia Judicial Penal'}
                     </h3>
+                    {d.denuncia_denunciante && (
+                      <div className="flex items-center space-x-1.5 text-[11px] text-slate-600 font-medium">
+                        <User className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span>Denunciante: <strong className="text-slate-800">{d.denuncia_denunciante}</strong></span>
+                        {d.denuncia_cedula && (
+                          <span className="font-mono bg-slate-100 px-1.5 py-0.2 rounded border text-slate-700 text-[10px]">
+                            C.I. {d.denuncia_cedula}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-bold text-police-900 bg-accent-gold/20 text-accent-goldDark px-2.5 py-1 rounded-md border border-accent-gold/30">

@@ -14,6 +14,10 @@ class DiligenciaCreate(BaseModel):
 class DiligenciaOut(BaseModel):
     id: int
     denuncia_id: int
+    denuncia_codigo: Optional[str] = None
+    denuncia_delito: Optional[str] = None
+    denuncia_denunciante: Optional[str] = None
+    denuncia_cedula: Optional[str] = None
     juez_nombre: Optional[str] = None
     fiscal_nombre: Optional[str] = None
     fecha_audiencia: Optional[datetime] = None

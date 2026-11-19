@@ -17,3 +17,21 @@ class DiligenciaJudicial(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     denuncia = relationship("DenunciaSolicitud", back_populates="diligencias")
+
+    @property
+    def denuncia_codigo(self) -> str | None:
+        return self.denuncia.codigo_unico if self.denuncia else None
+
+    @property
+    def denuncia_delito(self) -> str | None:
+        return self.denuncia.categoria.nombre if self.denuncia and self.denuncia.categoria else None
+
+    @property
+    def denuncia_denunciante(self) -> str | None:
+        if self.denuncia and self.denuncia.ciudadano:
+            return f"{self.denuncia.ciudadano.nombres} {self.denuncia.ciudadano.apellidos}"
+        return None
+
+    @property
+    def denuncia_cedula(self) -> str | None:
+        return self.denuncia.ciudadano.cedula if self.denuncia and self.denuncia.ciudadano else None
