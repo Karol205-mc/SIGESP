@@ -27,7 +27,7 @@ app = FastAPI(
     **Ecosistema:** Universidad Técnica "Luis Vargas Torres" de Esmeraldas (5 Grupos Interoperables)  
     
     ### Características principales:
-    * **Autenticación Dual:** JWT Local + Keycloak SSO (:8080 con realm `esmeraldas-resiliente`).
+    * **Autenticación Dual:** JWT Local + Keycloak SSO (:8080 con realm `Policia`).
     * **RBAC:** Roles estrictos (Admin, Flagrancia, Judicial, Supervisor, Ciudadano).
     * **Trazabilidad:** Flujo estricto de 6 estados de denuncias y bitácora inmutable de auditoría.
     * **Interoperabilidad:** Endpoints con autenticación por API Key (`X-Api-Key: RC-POLICIA-KEY-2026`) para Migración, Registro Civil, Banco e IESS.

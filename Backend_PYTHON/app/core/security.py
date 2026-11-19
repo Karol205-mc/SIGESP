@@ -38,7 +38,7 @@ def decode_token(token: str) -> Dict[str, Any]:
     """
     Decodifica tokens con soporte dual:
     1. Tokens JWT locales emitidos por SIGESP.
-    2. Tolerancia nativa para tokens de Keycloak SSO (:8080 realm 'esmeraldas-resiliente').
+    2. Tolerancia nativa para tokens de Keycloak SSO (:8080 realm 'Policia').
     """
     # Intentar primero con la clave local
     try:

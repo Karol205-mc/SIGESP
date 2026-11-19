@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     # Keycloak SSO (Ecosistema 5 Grupos)
     KEYCLOAK_URL: str = "http://localhost:8080"
-    KEYCLOAK_REALM: str = "esmeraldas-resiliente"
+    KEYCLOAK_REALM: str = "Policia"
     KEYCLOAK_CLIENT_ID: str = "sigesp-policia"
 
     # Protocolo de Interoperabilidad Interinstitucional (5 Grupos UTE-LVT)

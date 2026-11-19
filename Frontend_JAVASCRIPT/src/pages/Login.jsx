@@ -46,7 +46,7 @@ export default function Login({ onLoginSuccess, onCancel, onIrARegistro }) {
   };
 
   const handleKeycloakSSO = () => {
-    const keycloakAuthUrl = 'http://localhost:8080/realms/esmeraldas-resiliente/protocol/openid-connect/auth' +
+    const keycloakAuthUrl = 'http://localhost:8080/realms/Policia/protocol/openid-connect/auth' +
       '?client_id=sigesp-policia' +
       '&response_type=token' +
       '&redirect_uri=' + encodeURIComponent(window.location.origin) +
@@ -139,7 +139,7 @@ export default function Login({ onLoginSuccess, onCancel, onIrARegistro }) {
               <span>Iniciar con Keycloak SSO (:8080)</span>
             </button>
             <p className="text-[10px] text-center text-slate-400 mt-1">
-              Realm: <span className="font-semibold text-slate-600">esmeraldas-resiliente</span>
+              Realm: <span className="font-semibold text-slate-600">Policia</span>
             </p>
           </div>
 
