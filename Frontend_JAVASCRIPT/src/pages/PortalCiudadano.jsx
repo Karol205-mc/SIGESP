@@ -298,11 +298,11 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
             </form>
           </div>
 
-          <div className="absolute right-0 bottom-0 w-[38%] h-full hidden lg:flex items-end justify-end pointer-events-none overflow-hidden">
+          <div className="absolute right-0 bottom-0 w-[34%] h-full hidden lg:flex items-end justify-end pointer-events-none overflow-hidden">
             <img
               src="/assets/poli-mujer-01.webp"
               alt="Policía Nacional"
-              className="h-[92%] w-full object-contain object-right-bottom pr-4"
+              className="h-full w-full object-contain object-right-bottom"
             />
           </div>
         </div>
