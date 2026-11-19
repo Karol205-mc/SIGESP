@@ -53,18 +53,13 @@ def listar_denuncias(
 
     if user_role == "CIUDADANO":
         q = q.join(Ciudadano).filter(Ciudadano.email.ilike(f"%{current_user.get('username')}%"))
-    elif user_role == "POLICIA_FLAGRANCIA":
-        q = q.outerjoin(Asignacion).filter(
-            (Asignacion.usuario_asignado_id == user_id) | 
-            (DenunciaSolicitud.tipo_tramite == "FLAGRANCIA") |
-            (DenunciaSolicitud.estado.in_(["Registrada", "En revisión", "En proceso", "Esperando documentos", "Tramitando"]))
+    elif user_role in ["POLICIA_FLAGRANCIA", "POLICIA_JUDICIAL"]:
+        # Los agentes operativos ÚNICAMENTE visualizan los expedientes asignados formalmente a ellos
+        q = q.join(Asignacion, Asignacion.denuncia_id == DenunciaSolicitud.id).filter(
+            Asignacion.usuario_asignado_id == user_id,
+            Asignacion.activo == True
         ).distinct()
-    elif user_role == "POLICIA_JUDICIAL":
-        q = q.outerjoin(Asignacion).filter(
-            (Asignacion.usuario_asignado_id == user_id) | 
-            (DenunciaSolicitud.tipo_tramite.in_(["INVESTIGACION_PREVIA", "DINAPEN_MENOR"])) |
-            (DenunciaSolicitud.estado.in_(["Asignada", "En proceso", "Audiencia / Judicializada", "Procesado", "En juicio"]))
-        ).distinct()
+    # SUPERVISOR y ADMIN visualizan todos los casos (tanto los asignados como los no asignados)
 
     if estado:
         q = q.filter(DenunciaSolicitud.estado == estado)

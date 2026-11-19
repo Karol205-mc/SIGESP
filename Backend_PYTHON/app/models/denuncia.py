@@ -50,3 +50,17 @@ class DenunciaSolicitud(Base):
     asignaciones = relationship("Asignacion", back_populates="denuncia", cascade="all, delete-orphan")
     diligencias = relationship("DiligenciaJudicial", back_populates="denuncia", cascade="all, delete-orphan")
     seguimientos = relationship("Seguimiento", back_populates="denuncia", cascade="all, delete-orphan", order_by="Seguimiento.fecha_cambio.desc()")
+
+    @property
+    def asignada(self) -> bool:
+        return any(a.activo for a in self.asignaciones) if self.asignaciones else False
+
+    @property
+    def agente_asignado(self) -> str | None:
+        if not self.asignaciones:
+            return None
+        activas = [a for a in self.asignaciones if a.activo]
+        if activas and activas[0].usuario_asignado:
+            u = activas[0].usuario_asignado
+            return f"{u.nombres} {u.apellidos} ({u.placa or 'S/N'})"
+        return None

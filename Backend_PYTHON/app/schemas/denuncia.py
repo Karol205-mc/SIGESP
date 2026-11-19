@@ -53,6 +53,8 @@ class DenunciaOut(BaseModel):
     estado: str
     orden_captura_activa: bool
     medida_proteccion: bool
+    asignada: bool = False
+    agente_asignado: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
