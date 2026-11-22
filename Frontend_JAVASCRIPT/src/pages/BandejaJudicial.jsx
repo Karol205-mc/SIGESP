@@ -62,13 +62,19 @@ export default function BandejaJudicial({ user, onNavigateToAudiencias }) {
   const toggleMedida = async (campo, valorActual) => {
     if (!casoSeleccionado) return;
     try {
-      const payload = {};
-      payload[campo] = !valorActual;
-      await api.put(`/denuncias/${casoSeleccionado.id}/medidas?${campo}=${!valorActual}`);
+      const nuevoValor = !valorActual;
+      const paramName = campo === 'orden_captura_activa' ? 'orden_captura' : campo;
+      await api.put(`/denuncias/${casoSeleccionado.id}/medidas?${paramName}=${nuevoValor}`);
       cargarCasos();
-      setCasoSeleccionado(prev => ({ ...prev, [campo]: !valorActual }));
+      setCasoSeleccionado(prev => ({
+        ...prev,
+        [campo]: nuevoValor,
+        orden_captura_denunciado: campo === 'orden_captura_activa' ? nuevoValor : prev.orden_captura_denunciado,
+        orden_captura_activa: campo === 'orden_captura_activa' ? nuevoValor : prev.orden_captura_activa,
+        medida_proteccion: campo === 'medida_proteccion' ? nuevoValor : prev.medida_proteccion
+      }));
     } catch (err) {
-      alert("Error al modificar medidas cautelares.");
+      alert("Error al modificar medidas procesales.");
     }
   };
 
@@ -97,8 +103,9 @@ export default function BandejaJudicial({ user, onNavigateToAudiencias }) {
           const matchCodigo = c.codigo_unico?.toLowerCase().includes(term);
           const matchCedula = c.ciudadano?.cedula?.includes(term);
           const matchNombre = `${c.ciudadano?.nombres || ''} ${c.ciudadano?.apellidos || ''}`.toLowerCase().includes(term);
+          const matchDenunciado = `${c.denunciado_nombres || ''} ${c.denunciado_alias || ''} ${c.denunciado_cedula || ''}`.toLowerCase().includes(term);
           const matchCategoria = c.categoria?.nombre?.toLowerCase().includes(term);
-          return matchCodigo || matchCedula || matchNombre || matchCategoria;
+          return matchCodigo || matchCedula || matchNombre || matchDenunciado || matchCategoria;
         }
 
         return true;
@@ -273,14 +280,14 @@ export default function BandejaJudicial({ user, onNavigateToAudiencias }) {
                           }`}>
                             {c.estado}
                           </span>
-                          {c.orden_captura_activa && (
+                          {(c.orden_captura_denunciado || c.orden_captura_activa) && (
                             <span className="px-2 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">
-                              ORDEN DE CAPTURA
+                              ORDEN DE CAPTURA (Denunciado)
                             </span>
                           )}
                           {c.medida_proteccion && (
-                            <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[9px] font-black">
-                              MEDIDA PROTECCIÓN
+                            <span className="px-2 py-0.5 rounded bg-blue-600 text-white text-[9px] font-black">
+                              PROTECCIÓN (Víctima)
                             </span>
                           )}
                           {cerrado && (
@@ -292,16 +299,39 @@ export default function BandejaJudicial({ user, onNavigateToAudiencias }) {
 
                         <h3 className="text-xs font-bold text-slate-900">{c.categoria?.nombre}</h3>
 
-                        {/* Datos del denunciante */}
-                        {c.ciudadano && (
-                          <div className="flex items-center space-x-2 text-[11px] text-slate-600 font-medium">
-                            <User className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span>Denunciante: <strong className="text-slate-800">{c.ciudadano.nombres} {c.ciudadano.apellidos}</strong></span>
-                            <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 text-[10px]">
-                              C.I. {c.ciudadano.cedula}
-                            </span>
-                          </div>
-                        )}
+                        {/* Partes Procesales Diferenciadas */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-[11px] text-slate-600 mt-1">
+                          {c.ciudadano && (
+                            <div className="flex items-center space-x-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 font-bold border border-blue-200 text-[10px]">
+                                🛡️ Víctima:
+                              </span>
+                              <span className="font-semibold text-slate-800">{c.ciudadano.nombres} {c.ciudadano.apellidos}</span>
+                              <span className="font-mono bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-slate-600 text-[10px]">
+                                C.I. {c.ciudadano.cedula}
+                              </span>
+                            </div>
+                          )}
+
+                          {(c.denunciado_nombres || c.denunciado_alias || c.denunciado_cedula) && (
+                            <div className="flex items-center space-x-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 font-bold border border-rose-200 text-[10px]">
+                                ⚠️ Denunciado:
+                              </span>
+                              <span className="font-semibold text-slate-800">
+                                {c.denunciado_nombres || 'En averiguación'}
+                              </span>
+                              {c.denunciado_alias && (
+                                <span className="text-rose-700 font-bold text-[10px]">[{c.denunciado_alias}]</span>
+                              )}
+                              {c.denunciado_cedula && (
+                                <span className="font-mono bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-slate-600 text-[10px]">
+                                  C.I. {c.denunciado_cedula}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
 
                         <p className="text-xs text-slate-600 mt-1 line-clamp-2">{c.descripcion_hechos}</p>
                       </div>
@@ -322,42 +352,90 @@ export default function BandejaJudicial({ user, onNavigateToAudiencias }) {
                 <span className="text-[10px] font-bold uppercase text-slate-400">Expediente PJ</span>
                 <h3 className="text-base font-extrabold text-police-900">{casoSeleccionado.codigo_unico}</h3>
                 <p className="text-xs text-slate-600">{casoSeleccionado.categoria?.nombre}</p>
-                {casoSeleccionado.ciudadano && (
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Denunciante: <strong className="text-slate-700">{casoSeleccionado.ciudadano.nombres} {casoSeleccionado.ciudadano.apellidos}</strong> (C.I.: {casoSeleccionado.ciudadano.cedula})
-                  </p>
-                )}
               </div>
 
-              {/* Botones de Medidas Cautelares (Afectan la Interoperabilidad con Migración) */}
-              <div className="space-y-2 pt-1">
-                <span className="text-[10px] font-bold uppercase text-slate-400 block">
-                  Alertas Interinstitucionales (Migración / SGIM)
-                </span>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => toggleMedida('orden_captura_activa', casoSeleccionado.orden_captura_activa)}
-                    className={`px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-between border transition-all ${
-                      casoSeleccionado.orden_captura_activa
-                        ? 'bg-rose-50 text-rose-700 border-rose-300'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span>Impedimento de Salida / Captura</span>
-                    <span className={`w-2 h-2 rounded-full ${casoSeleccionado.orden_captura_activa ? 'bg-rose-600' : 'bg-slate-300'}`}></span>
-                  </button>
+              {/* GESTIÓN DE SUJETOS PROCESALES (Garantía Legal) */}
+              <div className="space-y-3 pt-1">
+                {/* 1. VÍCTIMA / DENUNCIANTE */}
+                <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-blue-900 tracking-wider">
+                      🛡️ Víctima / Denunciante
+                    </span>
+                    <span className="text-[10px] bg-blue-100 text-blue-800 font-mono font-bold px-1.5 py-0.5 rounded">
+                      C.I. {casoSeleccionado.ciudadano?.cedula}
+                    </span>
+                  </div>
+                  <p className="text-xs font-extrabold text-slate-900">
+                    {casoSeleccionado.ciudadano?.nombres} {casoSeleccionado.ciudadano?.apellidos}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Telf: <strong>{casoSeleccionado.ciudadano?.telefono || 'S/N'}</strong> • Residencia: {casoSeleccionado.ciudadano?.direccion || 'Esmeraldas'}
+                  </p>
 
                   <button
                     onClick={() => toggleMedida('medida_proteccion', casoSeleccionado.medida_proteccion)}
-                    className={`px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-between border transition-all ${
+                    className={`w-full px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-between border transition-all ${
                       casoSeleccionado.medida_proteccion
-                        ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-blue-600 text-white border-blue-700 shadow-sm'
+                        : 'bg-white text-blue-900 border-blue-300 hover:bg-blue-100'
                     }`}
                   >
-                    <span>Medida Cautelar de Protección</span>
-                    <span className={`w-2 h-2 rounded-full ${casoSeleccionado.medida_proteccion ? 'bg-indigo-600' : 'bg-slate-300'}`}></span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${casoSeleccionado.medida_proteccion ? 'bg-accent-gold animate-pulse' : 'bg-slate-300'}`}></span>
+                      <span>Medida de Protección (Art. 558 COIP)</span>
+                    </div>
+                    <span className="text-[10px] uppercase font-black">
+                      {casoSeleccionado.medida_proteccion ? 'ACTIVA' : 'INACTIVA'}
+                    </span>
                   </button>
+                  <p className="text-[10px] text-blue-800/80 italic">
+                    * Boleta de auxilio a la víctima. No genera antecedentes penales.
+                  </p>
+                </div>
+
+                {/* 2. DENUNCIADO / IMPUTADO / SOSPECHOSO */}
+                <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-rose-900 tracking-wider">
+                      ⚠️ Denunciado / Imputado
+                    </span>
+                    {casoSeleccionado.denunciado_cedula ? (
+                      <span className="text-[10px] bg-rose-100 text-rose-800 font-mono font-bold px-1.5 py-0.5 rounded">
+                        C.I. {casoSeleccionado.denunciado_cedula}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">
+                        Por Identificar
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-extrabold text-slate-900">
+                    {casoSeleccionado.denunciado_nombres || 'Sospechoso en averiguación'}
+                    {casoSeleccionado.denunciado_alias && (
+                      <span className="text-rose-700 font-bold ml-1">[{casoSeleccionado.denunciado_alias}]</span>
+                    )}
+                  </p>
+
+                  <button
+                    onClick={() => toggleMedida('orden_captura_activa', casoSeleccionado.orden_captura_denunciado || casoSeleccionado.orden_captura_activa)}
+                    className={`w-full px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-between border transition-all ${
+                      (casoSeleccionado.orden_captura_denunciado || casoSeleccionado.orden_captura_activa)
+                        ? 'bg-rose-600 text-white border-rose-700 shadow-sm'
+                        : 'bg-white text-rose-900 border-rose-300 hover:bg-rose-100'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${(casoSeleccionado.orden_captura_denunciado || casoSeleccionado.orden_captura_activa) ? 'bg-accent-gold animate-pulse' : 'bg-slate-300'}`}></span>
+                      <span>Impedimento de Salida / Captura (SGIM)</span>
+                    </div>
+                    <span className="text-[10px] uppercase font-black">
+                      {(casoSeleccionado.orden_captura_denunciado || casoSeleccionado.orden_captura_activa) ? 'VIGENTE' : 'SIN ORDEN'}
+                    </span>
+                  </button>
+                  <p className="text-[10px] text-rose-800/80 italic">
+                    * Alerta roja para Migración (SGIM) y Software Central contra el imputado.
+                  </p>
                 </div>
               </div>
 

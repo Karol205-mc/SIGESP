@@ -32,6 +32,8 @@ def consultar_tramite_publico(codigo_unico: str, db: Session = Depends(get_db)):
         .all()
     )
 
+    denunciante_str = f"{denuncia.ciudadano.nombres} {denuncia.ciudadano.apellidos}" if denuncia.ciudadano else None
+
     return ConsultaPublicaOut(
         codigo_unico=denuncia.codigo_unico,
         estado_actual=denuncia.estado,
@@ -40,6 +42,11 @@ def consultar_tramite_publico(codigo_unico: str, db: Session = Depends(get_db)):
         gravedad=denuncia.categoria.gravedad if denuncia.categoria else "MEDIA",
         fecha_hechos=denuncia.fecha_hechos,
         sector=denuncia.sector,
+        denunciante_nombre=denunciante_str,
+        denunciado_nombres=denuncia.denunciado_nombres,
+        denunciado_alias=denuncia.denunciado_alias,
+        medida_proteccion=denuncia.medida_proteccion,
+        orden_captura_activa=denuncia.orden_captura_denunciado or denuncia.orden_captura_activa,
         historial_seguimiento=seguimientos
     )
 

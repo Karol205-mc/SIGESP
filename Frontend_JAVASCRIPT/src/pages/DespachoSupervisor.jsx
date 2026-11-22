@@ -104,8 +104,9 @@ export default function DespachoSupervisor({ user }) {
           const matchCodigo = d.codigo_unico?.toLowerCase().includes(term);
           const matchCedula = d.ciudadano?.cedula?.includes(term);
           const matchNombre = `${d.ciudadano?.nombres || ''} ${d.ciudadano?.apellidos || ''}`.toLowerCase().includes(term);
+          const matchDenunciado = `${d.denunciado_nombres || ''} ${d.denunciado_alias || ''} ${d.denunciado_cedula || ''}`.toLowerCase().includes(term);
           const matchCategoria = d.categoria?.nombre?.toLowerCase().includes(term);
-          return matchCodigo || matchCedula || matchNombre || matchCategoria;
+          return matchCodigo || matchCedula || matchNombre || matchDenunciado || matchCategoria;
         }
 
         return true;
@@ -324,6 +325,18 @@ export default function DespachoSupervisor({ user }) {
                             </span>
                           )}
 
+                          {/* Medidas Procesales Vigentes */}
+                          {(d.orden_captura_denunciado || d.orden_captura_activa) && (
+                            <span className="px-2 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">
+                              CAPTURA DENUNCIADO
+                            </span>
+                          )}
+                          {d.medida_proteccion && (
+                            <span className="px-2 py-0.5 rounded bg-blue-600 text-white text-[9px] font-black">
+                              PROTECCIÓN VÍCTIMA
+                            </span>
+                          )}
+
                           {/* Distintivo de Agente Asignado */}
                           {d.agente_asignado && (
                             <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center space-x-1">
@@ -341,16 +354,39 @@ export default function DespachoSupervisor({ user }) {
 
                         <h3 className="text-xs font-bold text-slate-900">{d.categoria?.nombre}</h3>
 
-                        {/* Datos del denunciante para visualización y búsqueda */}
-                        {d.ciudadano && (
-                          <div className="flex items-center space-x-2 text-[11px] text-slate-600 font-medium">
-                            <User className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span>Denunciante: <strong className="text-slate-800">{d.ciudadano.nombres} {d.ciudadano.apellidos}</strong></span>
-                            <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 text-[10px]">
-                              C.I. {d.ciudadano.cedula}
-                            </span>
-                          </div>
-                        )}
+                        {/* Partes procesales diferenciadas: Denunciante (Víctima) vs Denunciado (Imputado) */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-[11px] text-slate-600 mt-1">
+                          {d.ciudadano && (
+                            <div className="flex items-center space-x-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 font-bold border border-blue-200 text-[10px]">
+                                🛡️ Víctima:
+                              </span>
+                              <span className="font-semibold text-slate-800">{d.ciudadano.nombres} {d.ciudadano.apellidos}</span>
+                              <span className="font-mono bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-slate-600 text-[10px]">
+                                C.I. {d.ciudadano.cedula}
+                              </span>
+                            </div>
+                          )}
+
+                          {(d.denunciado_nombres || d.denunciado_alias || d.denunciado_cedula) && (
+                            <div className="flex items-center space-x-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 font-bold border border-rose-200 text-[10px]">
+                                ⚠️ Denunciado:
+                              </span>
+                              <span className="font-semibold text-slate-800">
+                                {d.denunciado_nombres || 'En averiguación'}
+                              </span>
+                              {d.denunciado_alias && (
+                                <span className="text-rose-700 font-bold text-[10px]">[{d.denunciado_alias}]</span>
+                              )}
+                              {d.denunciado_cedula && (
+                                <span className="font-mono bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-slate-600 text-[10px]">
+                                  C.I. {d.denunciado_cedula}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
 
                         <p className="text-xs text-slate-600 line-clamp-2 mt-1">{d.descripcion_hechos}</p>
                       </div>
@@ -367,15 +403,36 @@ export default function DespachoSupervisor({ user }) {
         <div>
           {denunciaSeleccionada ? (
             <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4 sticky top-20">
-              <div className="border-b border-slate-200 pb-3">
-                <span className="text-[10px] font-bold uppercase text-slate-400">Asignar Expediente</span>
-                <h3 className="text-base font-extrabold text-police-900">{denunciaSeleccionada.codigo_unico}</h3>
-                <p className="text-xs text-slate-600 font-medium">{denunciaSeleccionada.categoria?.nombre}</p>
-                {denunciaSeleccionada.ciudadano && (
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Denunciante: <strong className="text-slate-700">{denunciaSeleccionada.ciudadano.nombres} {denunciaSeleccionada.ciudadano.apellidos}</strong> (C.I.: {denunciaSeleccionada.ciudadano.cedula})
-                  </p>
-                )}
+              <div className="border-b border-slate-200 pb-3 space-y-2">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Asignar Expediente</span>
+                  <h3 className="text-base font-extrabold text-police-900">{denunciaSeleccionada.codigo_unico}</h3>
+                  <p className="text-xs text-slate-600 font-medium">{denunciaSeleccionada.categoria?.nombre}</p>
+                </div>
+
+                {/* Ficha de Sujetos Procesales */}
+                <div className="space-y-1.5 pt-1 text-xs">
+                  {denunciaSeleccionada.ciudadano && (
+                    <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200">
+                      <span className="text-[10px] font-black uppercase text-blue-900 block">🛡️ Víctima / Denunciante:</span>
+                      <p className="font-bold text-slate-900">{denunciaSeleccionada.ciudadano.nombres} {denunciaSeleccionada.ciudadano.apellidos}</p>
+                      <p className="text-[11px] text-slate-500 font-mono">C.I. {denunciaSeleccionada.ciudadano.cedula} | Telf: {denunciaSeleccionada.ciudadano.telefono || 'S/N'}</p>
+                    </div>
+                  )}
+
+                  <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200">
+                    <span className="text-[10px] font-black uppercase text-rose-900 block">⚠️ Denunciado / Imputado:</span>
+                    <p className="font-bold text-slate-900">
+                      {denunciaSeleccionada.denunciado_nombres || 'En investigación pericial'}
+                      {denunciaSeleccionada.denunciado_alias && (
+                        <span className="text-rose-700 font-bold ml-1">[{denunciaSeleccionada.denunciado_alias}]</span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-mono">
+                      {denunciaSeleccionada.denunciado_cedula ? `C.I. ${denunciaSeleccionada.denunciado_cedula}` : 'Cédula no proporcionada'}
+                    </p>
+                  </div>
+                </div>
                 {!denunciaSeleccionada.asignada ? (
                   <div className="mt-2 inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-accent-gold/20 text-accent-goldDark font-bold text-[10px] border border-accent-gold/40">
                     <Clock className="w-3 h-3" />

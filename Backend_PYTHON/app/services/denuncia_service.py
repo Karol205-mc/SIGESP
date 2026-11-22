@@ -81,9 +81,19 @@ def crear_denuncia(
     codigo_unico = generar_codigo_unico(db)
     fecha_hechos = datos.fecha_hechos or datetime.now(timezone.utc)
 
+    denunciado_ciudadano = None
+    if getattr(datos, 'denunciado_cedula', None):
+        denunciado_ciudadano = db.query(Ciudadano).filter(Ciudadano.cedula == datos.denunciado_cedula.strip()).first()
+
     nueva_denuncia = DenunciaSolicitud(
         codigo_unico=codigo_unico,
         ciudadano_id=ciudadano.id,
+        denunciado_id=denunciado_ciudadano.id if denunciado_ciudadano else None,
+        denunciado_cedula=datos.denunciado_cedula.strip() if getattr(datos, 'denunciado_cedula', None) else None,
+        denunciado_nombres=datos.denunciado_nombres.strip() if getattr(datos, 'denunciado_nombres', None) else None,
+        denunciado_alias=datos.denunciado_alias.strip() if getattr(datos, 'denunciado_alias', None) else None,
+        orden_captura_denunciado=orden_captura,
+        impedimento_salida_denunciado=orden_captura,
         categoria_id=categoria.id,
         tipo_tramite=datos.tipo_tramite,
         descripcion_hechos=datos.descripcion_hechos,
@@ -97,6 +107,34 @@ def crear_denuncia(
     )
     db.add(nueva_denuncia)
     db.flush()
+
+    # Registrar al denunciante como parte procesal protegida
+    from app.models.denuncia import ImplicadoDenuncia
+    implicado_denunciante = ImplicadoDenuncia(
+        denuncia_id=nueva_denuncia.id,
+        ciudadano_id=ciudadano.id,
+        cedula=ciudadano.cedula,
+        nombres=ciudadano.nombres,
+        apellidos=ciudadano.apellidos,
+        rol="DENUNCIANTE / VICTIMA",
+        medida_proteccion=medida_proteccion,
+        orden_captura=False
+    )
+    db.add(implicado_denunciante)
+
+    # Si se especificó denunciado, registrarlo como imputado
+    if getattr(datos, 'denunciado_nombres', None) or getattr(datos, 'denunciado_cedula', None):
+        implicado_denunciado = ImplicadoDenuncia(
+            denuncia_id=nueva_denuncia.id,
+            ciudadano_id=denunciado_ciudadano.id if denunciado_ciudadano else None,
+            cedula=datos.denunciado_cedula.strip() if getattr(datos, 'denunciado_cedula', None) else None,
+            nombres=datos.denunciado_nombres.strip() if getattr(datos, 'denunciado_nombres', None) else "Sospechoso no identificado",
+            alias=datos.denunciado_alias.strip() if getattr(datos, 'denunciado_alias', None) else None,
+            rol="DENUNCIADO / IMPUTADO",
+            orden_captura=orden_captura,
+            impedimento_salida=orden_captura
+        )
+        db.add(implicado_denunciado)
 
     # 5. Registro automático en seguimiento (Estado inicial 'Registrada')
     primer_seguimiento = Seguimiento(

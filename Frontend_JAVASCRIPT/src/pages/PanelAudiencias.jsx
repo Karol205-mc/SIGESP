@@ -140,7 +140,7 @@ export default function PanelAudiencias() {
               >
                 {denuncias.map(d => (
                   <option key={d.id} value={d.id}>
-                    {d.codigo_unico} - {d.categoria?.nombre} ({d.estado})
+                    {d.codigo_unico} - {d.categoria?.nombre} | Víctima: {d.ciudadano?.nombres} {d.ciudadano?.apellidos} | Imputado: {d.denunciado_nombres || d.denunciado_alias || 'En investigación'} ({d.estado})
                   </option>
                 ))}
               </select>

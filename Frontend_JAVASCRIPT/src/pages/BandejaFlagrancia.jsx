@@ -81,8 +81,9 @@ export default function BandejaFlagrancia({ user }) {
           const matchCodigo = d.codigo_unico?.toLowerCase().includes(term);
           const matchCedula = d.ciudadano?.cedula?.includes(term);
           const matchNombre = `${d.ciudadano?.nombres || ''} ${d.ciudadano?.apellidos || ''}`.toLowerCase().includes(term);
+          const matchDenunciado = `${d.denunciado_nombres || ''} ${d.denunciado_alias || ''} ${d.denunciado_cedula || ''}`.toLowerCase().includes(term);
           const matchCategoria = d.categoria?.nombre?.toLowerCase().includes(term);
-          return matchCodigo || matchCedula || matchNombre || matchCategoria;
+          return matchCodigo || matchCedula || matchNombre || matchDenunciado || matchCategoria;
         }
 
         return true;
@@ -238,9 +239,14 @@ export default function BandejaFlagrancia({ user }) {
                           }`}>
                             {d.estado}
                           </span>
-                          {d.orden_captura_activa && (
+                          {(d.orden_captura_denunciado || d.orden_captura_activa) && (
                             <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[9px]">
-                              CAPTURA
+                              CAPTURA / APREHENSIÓN
+                            </span>
+                          )}
+                          {d.medida_proteccion && (
+                            <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white font-black text-[9px]">
+                              PROTECCIÓN VÍCTIMA
                             </span>
                           )}
                           {cerrado && (
@@ -252,16 +258,39 @@ export default function BandejaFlagrancia({ user }) {
 
                         <h3 className="text-xs font-bold text-slate-800">{d.categoria?.nombre || 'Delito'}</h3>
 
-                        {/* Datos del denunciante */}
-                        {d.ciudadano && (
-                          <div className="flex items-center space-x-2 text-[11px] text-slate-600 font-medium">
-                            <User className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span>Denunciante: <strong className="text-slate-800">{d.ciudadano.nombres} {d.ciudadano.apellidos}</strong></span>
-                            <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 text-[10px]">
-                              C.I. {d.ciudadano.cedula}
-                            </span>
-                          </div>
-                        )}
+                        {/* Partes Procesales Diferenciadas: Víctima vs Sospechoso */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-[11px] text-slate-600 mt-1">
+                          {d.ciudadano && (
+                            <div className="flex items-center space-x-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 font-bold border border-blue-200 text-[10px]">
+                                🛡️ Víctima:
+                              </span>
+                              <span className="font-semibold text-slate-800">{d.ciudadano.nombres} {d.ciudadano.apellidos}</span>
+                              <span className="font-mono bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-slate-600 text-[10px]">
+                                C.I. {d.ciudadano.cedula}
+                              </span>
+                            </div>
+                          )}
+
+                          {(d.denunciado_nombres || d.denunciado_alias || d.denunciado_cedula) && (
+                            <div className="flex items-center space-x-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 font-bold border border-rose-200 text-[10px]">
+                                🚨 Sospechoso:
+                              </span>
+                              <span className="font-semibold text-slate-800">
+                                {d.denunciado_nombres || 'En averiguación'}
+                              </span>
+                              {d.denunciado_alias && (
+                                <span className="text-rose-700 font-bold text-[10px]">[{d.denunciado_alias}]</span>
+                              )}
+                              {d.denunciado_cedula && (
+                                <span className="font-mono bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-slate-600 text-[10px]">
+                                  C.I. {d.denunciado_cedula}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
 
                         <p className="text-xs text-slate-600 mt-1 line-clamp-2">{d.descripcion_hechos}</p>
                       </div>
@@ -292,11 +321,39 @@ export default function BandejaFlagrancia({ user }) {
                 <p className="text-xs text-slate-600 font-medium">{casoSeleccionado.categoria?.nombre}</p>
               </div>
 
-              {/* Datos de la Víctima / Denunciante */}
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1">
-                <div className="font-bold text-slate-700">Denunciante:</div>
-                <div className="text-slate-900 font-semibold">{casoSeleccionado.ciudadano?.nombres} {casoSeleccionado.ciudadano?.apellidos}</div>
-                <div className="text-slate-500 text-[11px]">C.I.: {casoSeleccionado.ciudadano?.cedula} | Telf: {casoSeleccionado.ciudadano?.telefono || 'No registra'}</div>
+              {/* Ficha de Partes Procesales (Flagrancia) */}
+              <div className="space-y-2 text-xs">
+                {/* Víctima */}
+                <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200">
+                  <span className="text-[10px] font-black uppercase text-blue-900 block">🛡️ Víctima / Denunciante:</span>
+                  <div className="text-slate-900 font-bold">{casoSeleccionado.ciudadano?.nombres} {casoSeleccionado.ciudadano?.apellidos}</div>
+                  <div className="text-slate-500 text-[11px] font-mono">C.I.: {casoSeleccionado.ciudadano?.cedula} | Telf: {casoSeleccionado.ciudadano?.telefono || 'S/N'}</div>
+                </div>
+
+                {/* Sospechoso / Aprehendido */}
+                <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-rose-900 block">🚨 Sospechoso / Aprehendido:</span>
+                    {(casoSeleccionado.orden_captura_denunciado || casoSeleccionado.orden_captura_activa) ? (
+                      <span className="text-[9px] bg-rose-600 text-white font-black px-1.5 py-0.2 rounded">
+                        BAJO CUSTODIA
+                      </span>
+                    ) : (
+                      <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">
+                        FLAGRANTE
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-slate-900 font-bold">
+                    {casoSeleccionado.denunciado_nombres || 'Sospechoso en averiguación'}
+                    {casoSeleccionado.denunciado_alias && (
+                      <span className="text-rose-700 font-bold ml-1">[{casoSeleccionado.denunciado_alias}]</span>
+                    )}
+                  </div>
+                  <div className="text-slate-500 text-[11px] font-mono">
+                    {casoSeleccionado.denunciado_cedula ? `C.I.: ${casoSeleccionado.denunciado_cedula}` : 'Cédula no proporcionada'}
+                  </div>
+                </div>
               </div>
 
               {/* Formulario de Diligencia Policial */}

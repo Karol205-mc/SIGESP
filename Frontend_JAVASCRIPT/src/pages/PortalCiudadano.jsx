@@ -79,6 +79,9 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
     telefono: user?.telefono || '',
     email: user?.email || '',
     direccion_ciudadano: user?.direccion || '',
+    denunciado_nombres: '',
+    denunciado_cedula: '',
+    denunciado_alias: '',
     categoria_id: '',
     tipo_tramite: 'FLAGRANCIA',
     descripcion_hechos: '',
@@ -180,6 +183,9 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
         telefono: formData.telefono,
         email: formData.email,
         direccion_ciudadano: formData.direccion_ciudadano,
+        denunciado_nombres: formData.denunciado_nombres?.trim() || null,
+        denunciado_cedula: formData.denunciado_cedula?.trim() || null,
+        denunciado_alias: formData.denunciado_alias?.trim() || null,
         categoria_id: parseInt(formData.categoria_id),
         tipo_tramite: formData.tipo_tramite,
         descripcion_hechos: formData.descripcion_hechos,
@@ -544,6 +550,25 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
                     </span>
                   </div>
                 </div>
+
+                {/* Resumen Oficial de Partes Procesales (Garantía Legal) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left max-w-xl mx-auto pt-2">
+                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+                    <span className="text-[10px] uppercase font-black text-blue-800 tracking-wider block">🛡️ Denunciante / Víctima</span>
+                    <span className="text-xs font-black text-slate-900 block">{formData.nombres} {formData.apellidos}</span>
+                    <span className="text-[11px] text-slate-500 font-mono">C.I. {formData.cedula} • Con derecho a protección</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200">
+                    <span className="text-[10px] uppercase font-black text-rose-800 tracking-wider block">⚠️ Denunciado / Sospechoso</span>
+                    <span className="text-xs font-black text-slate-900 block">
+                      {formData.denunciado_nombres || formData.denunciado_alias || 'Sujeto por identificar'}
+                      {formData.denunciado_alias && formData.denunciado_nombres ? ` [${formData.denunciado_alias}]` : ''}
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-mono">
+                      {formData.denunciado_cedula ? `C.I. ${formData.denunciado_cedula}` : 'En investigación pericial'}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* INSTRUCCIÓN OBLIGATORIA: ACERCARSE AL UPC / UVC */}
@@ -815,7 +840,63 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
                   </div>
                 </div>
 
-                {/* Bloque 4: Declaración Jurada Obligatoria */}
+                {/* Bloque 4: Sujetos Procesales Implicados / Denunciado (Sospechoso o Autor) */}
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-bold text-police-900 uppercase tracking-wider flex items-center space-x-1.5">
+                      <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+                      <span>4. Identificación del Denunciado / Sospechoso / Autor (Implicado)</span>
+                    </h3>
+                    <span className="text-[10px] bg-rose-50 text-rose-700 px-2 py-0.5 rounded font-bold border border-rose-200">
+                      Garantía Procesal COIP
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mb-3">
+                    Indique los datos conocidos del presunto autor o infractor. Si no conoce sus nombres o cédula, detalle su alias, vestimenta o rasgos distintivos (ej: "Conductor de camioneta blanca", "Alias El Ruso").
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Nombres y Apellidos del Sospechoso
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.denunciado_nombres}
+                        onChange={(e) => setFormData({ ...formData, denunciado_nombres: e.target.value })}
+                        placeholder="Ej: Carlos Manuel Bone Caicedo"
+                        className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-police-700 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Alias / Apodo / Rasgos Físicos
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.denunciado_alias}
+                        onChange={(e) => setFormData({ ...formData, denunciado_alias: e.target.value })}
+                        placeholder="Ej: 'Alias El Ruso' / 'Tatuaje en brazo'"
+                        className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-police-700 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Cédula del Denunciado (Opcional)
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={10}
+                        value={formData.denunciado_cedula}
+                        onChange={(e) => setFormData({ ...formData, denunciado_cedula: e.target.value.replace(/\D/g, '') })}
+                        placeholder="Ej: 0805000005 (Solo si la conoce)"
+                        className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-police-700 font-mono font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bloque 5: Declaración Jurada Obligatoria */}
                 <div className="pt-4 border-t border-slate-100 bg-slate-50 p-4 rounded-xl border border-slate-200">
                   <div className="flex items-start space-x-3">
                     <input
@@ -920,6 +1001,43 @@ export default function PortalCiudadano({ user, onNavigateToLogin, onRegistroExi
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold">Sector</span>
                     <span className="font-bold text-slate-800">{resultadoConsulta.sector || 'Esmeraldas'}</span>
+                  </div>
+                </div>
+
+                {/* Resumen Oficial de Sujetos Procesales (Garantía Legal) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-black uppercase text-blue-900 block">🛡️ Sujeto Procesal (Víctima)</span>
+                      <span className="font-bold text-slate-800">{resultadoConsulta.denunciante_nombre || 'Denunciante Registrado'}</span>
+                    </div>
+                    {resultadoConsulta.medida_proteccion ? (
+                      <span className="px-2 py-0.5 rounded bg-blue-600 text-white font-black text-[10px]">
+                        PROTECCIÓN ACTIVA
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold text-[10px]">
+                        SIN MEDIDA
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3 bg-rose-50/80 rounded-xl border border-rose-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-black uppercase text-rose-900 block">⚠️ Sujeto Denunciado (Imputado)</span>
+                      <span className="font-bold text-slate-800">
+                        {resultadoConsulta.denunciado_nombres || resultadoConsulta.denunciado_alias || 'En identificación pericial'}
+                        {resultadoConsulta.denunciado_alias && resultadoConsulta.denunciado_nombres ? ` [${resultadoConsulta.denunciado_alias}]` : ''}
+                      </span>
+                    </div>
+                    {resultadoConsulta.orden_captura_activa ? (
+                      <span className="px-2 py-0.5 rounded bg-rose-600 text-white font-black text-[10px]">
+                        ORDEN DE CAPTURA
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold text-[10px]">
+                        EN INVESTIGACIÓN
+                      </span>
+                    )}
                   </div>
                 </div>
 

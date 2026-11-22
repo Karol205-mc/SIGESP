@@ -14,6 +14,21 @@ class CategoriaDelitoOut(BaseModel):
     class Config:
         from_attributes = True
 
+class ImplicadoOut(BaseModel):
+    id: int
+    cedula: Optional[str] = None
+    nombres: str
+    apellidos: Optional[str] = None
+    alias: Optional[str] = None
+    rol: str
+    orden_captura: bool = False
+    medida_proteccion: bool = False
+    impedimento_salida: bool = False
+    observaciones: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 class DenunciaCreate(BaseModel):
     # Datos del denunciante si es externo o existente
     cedula: str
@@ -22,6 +37,11 @@ class DenunciaCreate(BaseModel):
     telefono: Optional[str] = None
     email: Optional[str] = None
     direccion_ciudadano: Optional[str] = None
+
+    # Datos del sospechoso / denunciado (opcional)
+    denunciado_cedula: Optional[str] = None
+    denunciado_nombres: Optional[str] = None
+    denunciado_alias: Optional[str] = None
 
     # Datos del hecho
     categoria_id: int
@@ -42,6 +62,16 @@ class DenunciaOut(BaseModel):
     codigo_unico: str
     ciudadano_id: int
     ciudadano: Optional[CiudadanoOut] = None
+    
+    # Datos del denunciado / sospechoso
+    denunciado_id: Optional[int] = None
+    denunciado_cedula: Optional[str] = None
+    denunciado_nombres: Optional[str] = None
+    denunciado_alias: Optional[str] = None
+    orden_captura_denunciado: Optional[bool] = False
+    impedimento_salida_denunciado: Optional[bool] = False
+    implicados: Optional[List[ImplicadoOut]] = []
+
     categoria_id: int
     categoria: Optional[CategoriaDelitoOut] = None
     tipo_tramite: str

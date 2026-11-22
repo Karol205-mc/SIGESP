@@ -101,6 +101,7 @@ def actualizar_estado(
 def gestionar_medidas(
     id: int,
     orden_captura: Optional[bool] = None,
+    orden_captura_activa: Optional[bool] = None,
     medida_proteccion: Optional[bool] = None,
     tiene_sentencia: Optional[bool] = None,
     db: Session = Depends(get_db),
@@ -110,10 +111,35 @@ def gestionar_medidas(
     if not denuncia:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Denuncia no encontrada.")
 
-    if orden_captura is not None:
-        denuncia.orden_captura_activa = orden_captura
+    # Soporte para ambos nombres de parámetro (orden_captura u orden_captura_activa)
+    valor_captura = orden_captura if orden_captura is not None else orden_captura_activa
+
+    # La orden de captura se aplica sobre el DENUNCIADO / IMPUTADO
+    if valor_captura is not None:
+        denuncia.orden_captura_denunciado = valor_captura
+        denuncia.orden_captura_activa = valor_captura
+
+        # Actualizar en tabla de implicados si existe
+        from app.models.denuncia import ImplicadoDenuncia
+        implicado_den = db.query(ImplicadoDenuncia).filter(
+            ImplicadoDenuncia.denuncia_id == denuncia.id,
+            ImplicadoDenuncia.rol.in_(["DENUNCIADO", "IMPUTADO", "DENUNCIADO / IMPUTADO", "SOSPECHOSO"])
+        ).first()
+        if implicado_den:
+            implicado_den.orden_captura = valor_captura
+            implicado_den.impedimento_salida = valor_captura
+
+    # La medida de protección se aplica a favor de la VÍCTIMA / DENUNCIANTE (Art. 558 COIP)
     if medida_proteccion is not None:
         denuncia.medida_proteccion = medida_proteccion
+        from app.models.denuncia import ImplicadoDenuncia
+        implicado_vic = db.query(ImplicadoDenuncia).filter(
+            ImplicadoDenuncia.denuncia_id == denuncia.id,
+            ImplicadoDenuncia.rol.in_(["DENUNCIANTE", "VICTIMA", "DENUNCIANTE / VICTIMA"])
+        ).first()
+        if implicado_vic:
+            implicado_vic.medida_proteccion = medida_proteccion
+
     if tiene_sentencia is not None:
         denuncia.tiene_sentencia_condenatoria = tiene_sentencia
 

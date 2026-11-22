@@ -21,4 +21,4 @@ class Ciudadano(Base):
     es_menor = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    denuncias = relationship("DenunciaSolicitud", back_populates="ciudadano")
+    denuncias = relationship("DenunciaSolicitud", foreign_keys="[DenunciaSolicitud.ciudadano_id]", back_populates="ciudadano")

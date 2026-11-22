@@ -24,4 +24,9 @@ class ConsultaPublicaOut(BaseModel):
     gravedad: str
     fecha_hechos: datetime
     sector: Optional[str] = None
+    denunciante_nombre: Optional[str] = None
+    denunciado_nombres: Optional[str] = None
+    denunciado_alias: Optional[str] = None
+    medida_proteccion: Optional[bool] = False
+    orden_captura_activa: Optional[bool] = False
     historial_seguimiento: list[SeguimientoOut]
